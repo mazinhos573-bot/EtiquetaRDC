@@ -119,11 +119,11 @@ tr:hover { background: #f8fafc; }
             <div class="form-grid">
                 <div class="form-group">
                     <label>Seu Nome</label>
-                    <input type="text" id="colabNome" placeholder="Ex: João Silva">
+                    <input type="text" id="colabNome" placeholder="Ex: Manoel Guedes">
                 </div>
                 <div class="form-group">
                     <label>Tipo de Etiqueta</label>
-                    <input type="text" id="etiquetaNome" placeholder="Ex: Preço Gôndola, Promoção...">
+                    <input type="text" id="etiquetaNome" placeholder="Ex: Preço JUD, PIX...">
                 </div>
                 <div class="form-group">
                     <label>Quantidade</label>
@@ -180,14 +180,33 @@ tr:hover { background: #f8fafc; }
                 </div>
                 <i class="fa-solid fa-print metric-icon" style="color:var(--success)"></i>
             </div>
+            <div class="metric-card warning">
+                <div class="metric-info">
+                    <h3>Total Etiquetas Pendentes</h3>
+                    <p id="dashTotalPendentes">0</p>
+                </div>
+                <i class="fa-solid fa-tags metric-icon" style="color:var(--warning)"></i>
+            </div>
+            <div class="metric-card success">
+                <div class="metric-info">
+                    <h3>Total Etiquetas Impressas</h3>
+                    <p id="dashTotalImpressas">0</p>
+                </div>
+                <i class="fa-solid fa-tags metric-icon" style="color:var(--success)"></i>
+            </div>
         </div>
 
         <div class="card">
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f1f5f9; padding-bottom:15px; margin-bottom:15px;">
                 <h2 style="border:none; padding:0; margin:0;"><i class="fa-solid fa-list-check"></i> Fila de Impressão</h2>
-                <button class="btn btn-danger" onclick="limparHistorico()" style="font-size:0.8rem; padding:8px 15px;">
-                    <i class="fa-solid fa-trash"></i> Limpar Tudo
-                </button>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-primary" onclick="imprimirRelatorio()" style="font-size:0.8rem; padding:8px 15px;">
+                        <i class="fa-solid fa-file-export"></i> Imprimir Relatório
+                    </button>
+                    <button class="btn btn-danger" onclick="limparHistorico()" style="font-size:0.8rem; padding:8px 15px;">
+                        <i class="fa-solid fa-trash"></i> Limpar Tudo
+                    </button>
+                </div>
             </div>
             
             <div class="table-responsive">
@@ -242,248 +261,7 @@ tr:hover { background: #f8fafc; }
     <span id="toastMsg">Mensagem</span>
 </div>
 
-<script type="module">
-  import "./script.js";
-
-// --- BANCO DE DADOS SIMULADO ---
-let dbSolicitacoes = JSON.parse(localStorage.getItem("sge_db")) || [];
-let isAdminLoggedIn = false; // Controle de estado do login
-
-// --- INICIALIZAÇÃO ---
-document.addEventListener("DOMContentLoaded", () => {
-    atualizarTelas();
-    // Suporte a ENTER no login
-    document.getElementById("loginPass").addEventListener("keypress", function(event) {
-        if (event.key === "Enter") performLogin();
-    });
-});
-
-// --- LÓGICA DE LOGIN ---
-function checkAdminAccess() {
-    if (isAdminLoggedIn) {
-        switchRole('adm');
-    } else {
-        document.getElementById('loginModal').classList.add('active');
-        document.getElementById('loginUser').focus();
-    }
-}
-
-function closeLoginModal() {
-    document.getElementById('loginModal').classList.remove('active');
-    document.getElementById('loginError').style.display = 'none';
-    document.getElementById('loginUser').value = '';
-    document.getElementById('loginPass').value = '';
-}
-
-function performLogin() {
-    const user = document.getElementById('loginUser').value;
-    const pass = document.getElementById('loginPass').value;
-    const errorMsg = document.getElementById('loginError');
-
-    // VERIFICAÇÃO DE CREDENCIAIS
-    if (user === 'Ericlm' && pass === 'Evo@0101') {
-        isAdminLoggedIn = true;
-        closeLoginModal();
-        switchRole('adm');
-        showToast("Bem-vindo, SR.Manoel.Mendes!", "success");
-
-    
-    } else {
-        errorMsg.style.display = 'block';
-        // Tremor no input para feedback visual
-        const box = document.querySelector('.login-box');
-        box.style.transform = 'translateX(5px)';
-        setTimeout(() => box.style.transform = 'translateX(0)', 100);
-        setTimeout(() => box.style.transform = 'translateX(-5px)', 200);
-        setTimeout(() => box.style.transform = 'scale(1)', 300);
-    }
-}
-
-function logoutAdmin() {
-    isAdminLoggedIn = false;
-    switchRole('colaborador');
-    showToast("Logout realizado com sucesso.");
-}
-
-// --- CONTROLE DE TELAS ---
-function switchRole(role) {
-    const btnColab = document.getElementById('btnColab');
-    const btnAdm = document.getElementById('btnAdm');
-    const viewColab = document.getElementById('view-colaborador');
-    const viewAdm = document.getElementById('view-adm');
-
-    if (role === 'colaborador') {
-        btnColab.classList.add('active');
-        btnAdm.classList.remove('active');
-        viewColab.classList.remove('hidden');
-        viewAdm.classList.add('hidden');
-    } else if (role === 'adm') {
-        btnColab.classList.remove('active');
-        btnAdm.classList.add('active');
-        viewColab.classList.add('hidden');
-        viewAdm.classList.remove('hidden');
-        renderTabelaAdm();
-    }
-}
-
-// --- LÓGICA DO COLABORADOR ---
-function enviarSolicitacao() {
-    const nome = document.getElementById("colabNome").value.trim();
-    const etiqueta = document.getElementById("etiquetaNome").value.trim();
-    const qtd = document.getElementById("etiquetaQtd").value;
-
-    if (!nome || !etiqueta || !qtd) {
-        return showToast("Preencha todos os campos!", "error");
-    }
-
-    const novaSolicitacao = {
-        id: Date.now(),
-        solicitante: nome,
-        etiqueta: etiqueta,
-        qtd: parseInt(qtd),
-        data: new Date(),
-        status: 'pendente'
-    };
-
-    dbSolicitacoes.push(novaSolicitacao);
-    salvarDados();
-    
-    // Limpar campos
-    document.getElementById("etiquetaNome").value = "";
-    document.getElementById("etiquetaQtd").value = "";
-    
-    showToast("Solicitação enviada para o ADM!");
-    renderTabelaColaborador();
-    atualizarDashboard();
-}
-
-function renderTabelaColaborador() {
-    const tbody = document.querySelector("#tabelaColaborador tbody");
-    tbody.innerHTML = "";
-    
-    const ultimas = dbSolicitacoes.slice().reverse().slice(0, 10);
-
-    if(ultimas.length === 0) {
-        tbody.innerHTML = "<tr><td colspan='4' style='text-align:center; color:#999'>Nenhum pedido recente.</td></tr>";
-        return;
-    }
-
-    ultimas.forEach(item => {
-        const dataFormatada = new Date(item.data).toLocaleString('pt-BR', { hour: '2-digit', minute:'2-digit', day:'2-digit', month:'2-digit' });
-        const badgeClass = item.status === 'pendente' ? 'badge-pending' : 'badge-done';
-        const statusTexto = item.status === 'pendente' ? 'Aguardando' : 'Impresso';
-
-        tbody.innerHTML += `
-            <tr>
-                <td>${dataFormatada}</td>
-                <td>${item.etiqueta}</td>
-                <td><strong>${item.qtd}</strong></td>
-                <td><span class="badge ${badgeClass}">${statusTexto}</span></td>
-            </tr>
-        `;
-    });
-}
-
-// --- LÓGICA DO ADMINISTRADOR ---
-function renderTabelaAdm() {
-    const tbody = document.querySelector("#tabelaAdm tbody");
-    tbody.innerHTML = "";
-    
-    const listaOrdenada = dbSolicitacoes.sort((a, b) => {
-        if (a.status === b.status) return new Date(b.data) - new Date(a.data);
-        return a.status === 'pendente' ? -1 : 1;
-    });
-
-    if(listaOrdenada.length === 0) {
-        tbody.innerHTML = "<tr><td colspan='6' style='text-align:center; padding:20px; color:#999'>Fila de impressão vazia.</td></tr>";
-        return;
-    }
-
-    listaOrdenada.forEach(item => {
-        const dataFormatada = new Date(item.data).toLocaleString('pt-BR');
-        const isPendente = item.status === 'pendente';
-        
-        let acaoBtn = '';
-        let statusBadge = '';
-
-        if(isPendente) {
-            statusBadge = `<span class="badge badge-pending">Pendente</span>`;
-            acaoBtn = `
-                <button class="btn btn-primary" style="padding: 6px 12px; font-size: 0.8rem; margin:auto;" onclick="confirmarImpressao(${item.id})">
-                    <i class="fa-solid fa-print"></i> Imprimir
-                </button>`;
-        } else {
-            statusBadge = `<span class="badge badge-done">Concluído</span>`;
-            acaoBtn = `<span style="color:#10b981; font-size:1.2rem; display:block; text-align:center;"><i class="fa-solid fa-check-circle"></i></span>`;
-        }
-
-        tbody.innerHTML += `
-            <tr style="${!isPendente ? 'opacity:0.6; background:#f9fafb;' : ''}">
-                <td style="font-size:0.85rem">${dataFormatada}</td>
-                <td>${item.solicitante}</td>
-                <td><strong>${item.etiqueta}</strong></td>
-                <td>${item.qtd}</td>
-                <td>${statusBadge}</td>
-                <td>${acaoBtn}</td>
-            </tr>
-        `;
-    });
-    atualizarDashboard();
-}
-
-function confirmarImpressao(id) {
-    const index = dbSolicitacoes.findIndex(i => i.id === id);
-    if(index > -1) {
-        if(confirm(`Confirmar impressão de "${dbSolicitacoes[index].etiqueta}"?`)) {
-            dbSolicitacoes[index].status = 'impresso';
-            salvarDados();
-            renderTabelaAdm();
-            showToast("Marcado como impresso!", "success");
-        }
-    }
-}
-
-function atualizarDashboard() {
-    const pendentes = dbSolicitacoes.filter(i => i.status === 'pendente').length;
-    const hoje = new Date().toLocaleDateString();
-    const impressasHoje = dbSolicitacoes.filter(i => 
-        i.status === 'impresso' && new Date(i.data).toLocaleDateString() === hoje
-    ).length;
-
-    document.getElementById("dashPendentes").innerText = pendentes;
-    document.getElementById("dashImpressas").innerText = impressasHoje;
-}
-
-function limparHistorico() {
-    if(confirm("Tem certeza? Isso apagará todas as solicitações.")) {
-        dbSolicitacoes = [];
-        salvarDados();
-        atualizarTelas();
-        showToast("Histórico limpo.");
-    }
-}
-
-// --- UTILITÁRIOS ---
-function salvarDados() {
-    localStorage.setItem("sge_db", JSON.stringify(dbSolicitacoes));
-}
-
-function atualizarTelas() {
-    renderTabelaColaborador();
-    if(isAdminLoggedIn) renderTabelaAdm();
-}
-
-function showToast(msg, type = 'success') {
-    const toast = document.getElementById("toast");
-    const msgEl = document.getElementById("toastMsg");
-    
-    msgEl.innerText = msg;
-    toast.style.background = type === 'error' ? '#ef4444' : '#1e293b';
-    
-    toast.classList.add("show");
-    setTimeout(() => { toast.classList.remove("show"); }, 3000);
-}
-</script>
+<script type="module" src="./script.js"></script>
 
 </body>
 </html>
