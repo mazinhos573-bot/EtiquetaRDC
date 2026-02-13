@@ -1,4 +1,4 @@
-// BD.js
+// bd.js (mantido igual, mas incluído para completude)
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js';
 import { getDatabase, ref, push, update, onValue, remove, set, get } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js';
 
