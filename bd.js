@@ -4,14 +4,14 @@ import { getDatabase, ref, push, update, onValue, remove, set, get } from 'https
 
 // Configuração do Firebase
 const firebaseConfig = {
-  apiKey: "AIzaSyCiuEMTRejxFfV76S_xMv9Eskt-G9cuqUU",
-  authDomain: "sistema-de-etiqueta.firebaseapp.com",
-  databaseURL: "https://sistema-de-etiqueta-default-rtdb.firebaseio.com",
-  projectId: "sistema-de-etiqueta",
-  storageBucket: "sistema-de-etiqueta.firebasestorage.app",
-  messagingSenderId: "338003364834",
-  appId: "1:338003364834:web:10b8c7f72f942e018307bb",
-  measurementId: "G-WLJ9WCPTSD"
+  apiKey: "AIzaSyAuKRaFDaViCQj72lQgLH7HDFUxOk43fss",
+  authDomain: "insumo-16085.firebaseapp.com",
+  databaseURL: "https://insumo-16085-default-rtdb.firebaseio.com",
+  projectId: "insumo-16085",
+  storageBucket: "insumo-16085.firebasestorage.app",
+  messagingSenderId: "706106422021",
+  appId: "1:706106422021:web:4e6b4fafda82104df93d6c",
+  measurementId: "G-1Y7ZRBX658"
 };
 
 // Inicializar Firebase
